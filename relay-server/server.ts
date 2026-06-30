@@ -2,7 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import 'dotenv/config';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
@@ -32,7 +36,7 @@ const conversationHistory = new Map<string, HistoryEntry[]>();
 
 function extractCode(responseText: string): string {
   const fenceMatch = responseText.match(/```(?:tsx|jsx|ts|js)?\n([\s\S]*?)```/);
-  return fenceMatch ? fenceMatch[1].trim() : responseText.trim();
+  return fenceMatch ? (fenceMatch[1] ?? '').trim() : responseText.trim();
 }
 
 app.post('/generate', async (req, res) => {
