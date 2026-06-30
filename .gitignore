@@ -1,0 +1,15 @@
+node_modules
+
+# Build
+/dist/**/*
+
+# Local env file
+.env
+
+# Package management
+node_modules
+yalc.lock
+.yalc/*
+*/*/.yalc/*
+!.yalc/.gitkeep
+.nslm/
