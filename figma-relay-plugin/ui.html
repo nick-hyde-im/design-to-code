@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+        padding: 16px;
+      }
+      .header h1 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .header p {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 20px;
+      }
+      .field {
+        margin-bottom: 16px;
+      }
+      .field-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: #333;
+      }
+      .field-input {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 13px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        outline: none;
+      }
+      .field-input:focus {
+        border-color: #18a0fb;
+      }
+      .button {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background: #18a0fb;
+        color: white;
+      }
+      .button:hover:not(:disabled) {
+        background: #0d66d0;
+      }
+      .button:disabled {
+        background: #ccc;
+        opacity: 0.6;
+      }
+      .state-wrapper {
+        margin-top: 20px;
+        min-height: 200px;
+      }
+      .state {
+        display: none;
+      }
+      .state.active {
+        display: block;
+      }
+      .state-loading {
+        text-align: center;
+        padding: 40px 20px;
+      }
+      .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 2px solid #e5e5e5;
+        border-top: 2px solid #18a0fb;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .loading-text {
+        margin-top: 12px;
+        font-size: 12px;
+        color: #999;
+      }
+      .state-done {
+        padding: 20px;
+        background: #f0f9ff;
+        border-radius: 4px;
+        border: 1px solid #c3e0fb;
+      }
+      .state-done h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #0d66d0;
+      }
+      .code-block {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 12px;
+        border-radius: 4px;
+        font-family: "Monaco", "Courier New", monospace;
+        font-size: 11px;
+        line-height: 1.4;
+        overflow-x: auto;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 12px;
+      }
+      .copy-button {
+        padding: 6px 12px;
+        font-size: 11px;
+        background: #18a0fb;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .copy-button:hover {
+        background: #0d66d0;
+      }
+      .state-error {
+        padding: 16px;
+        background: #fef2f2;
+        border-radius: 4px;
+        border: 1px solid #fecaca;
+      }
+      .state-error h3 {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #dc2626;
+      }
+      .state-error p {
+        font-size: 12px;
+        color: #991b1b;
+      }
+      .retry-button {
+        margin-top: 12px;
+        padding: 8px 12px;
+        font-size: 12px;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .retry-button:hover {
+        background: #b91c1c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Component Relay</h1>
+      <p>Push components to Claude for code generation</p>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="tokenInput">Figma personal access token</label>
+      <input id="tokenInput" class="field-input" type="password" placeholder="figd_..." autocomplete="off" />
+    </div>
+
+    <button id="pushButton" class="button">Push Component</button>
+
+    <div class="state-wrapper">
+      <div id="stateLoading" class="state">
+        <div class="state-loading">
+          <div class="spinner"></div>
+          <div class="loading-text">Sending to relay...</div>
+        </div>
+      </div>
+
+      <div id="stateDone" class="state">
+        <div class="state-done">
+          <h3>✓ Generated Code</h3>
+          <div id="componentInfo"></div>
+          <div id="codeBlock" class="code-block"></div>
+          <button id="copyButton" class="copy-button">Copy Code</button>
+        </div>
+      </div>
+
+      <div id="stateError" class="state">
+        <div class="state-error">
+          <h3>✕ Error</h3>
+          <p id="errorMessage"></p>
+          <button id="retryButton" class="retry-button">Try Again</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentState = "idle";
+      let lastGeneratedCode = "";
+      let lastComponentName = "";
+
+      const pushButton = document.getElementById("pushButton");
+      const tokenInput = document.getElementById("tokenInput");
+      const stateLoading = document.getElementById("stateLoading");
+      const stateDone = document.getElementById("stateDone");
+      const stateError = document.getElementById("stateError");
+      const copyButton = document.getElementById("copyButton");
+      const retryButton = document.getElementById("retryButton");
+
+      pushButton.addEventListener("click", () => {
+        parent.postMessage(
+          { pluginMessage: { type: "push", figmaToken: tokenInput.value.trim() } },
+          "*"
+        );
+      });
+
+      copyButton.addEventListener("click", () => {
+        navigator.clipboard.writeText(lastGeneratedCode).then(() => {
+          const originalText = copyButton.textContent;
+          copyButton.textContent = "Copied!";
+          setTimeout(() => {
+            copyButton.textContent = originalText;
+          }, 2000);
+        });
+      });
+
+      retryButton.addEventListener("click", () => {
+        setState("idle");
+        pushButton.click();
+      });
+
+      window.onmessage = (event) => {
+        const msg = event.data.pluginMessage;
+        if (!msg) return;
+        if (msg.type === "init") {
+          tokenInput.value = msg.figmaToken || "";
+        }
+        if (msg.type === "loading") {
+          setState("loading");
+        }
+        if (msg.type === "done") {
+          lastGeneratedCode = msg.code;
+          lastComponentName = msg.componentName;
+          document.getElementById("componentInfo").innerHTML = `<p style="font-size: 12px; color: #666; margin-bottom: 12px;"><strong>${msg.componentName}</strong></p>`;
+          document.getElementById("codeBlock").textContent = msg.code;
+          setState("done");
+        }
+        if (msg.type === "error") {
+          document.getElementById("errorMessage").textContent = msg.message;
+          setState("error");
+        }
+      };
+
+      function setState(newState) {
+        currentState = newState;
+        stateLoading.classList.remove("active");
+        stateDone.classList.remove("active");
+        stateError.classList.remove("active");
+        pushButton.disabled = false;
+
+        if (newState === "loading") {
+          stateLoading.classList.add("active");
+          pushButton.disabled = true;
+        } else if (newState === "done") {
+          stateDone.classList.add("active");
+        } else if (newState === "error") {
+          stateError.classList.add("active");
+        }
+      }
+
+      setState("idle");
+
+      // Ask the main thread for any saved token once the UI is ready.
+      parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
+    </script>
+  </body>
+</html>

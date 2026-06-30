@@ -1,0 +1,23 @@
+{
+  "name": "Component Relay to Claude",
+  "id": "figma-component-relay",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "enablePrivatePluginApi": true,
+  "permissions": [
+    "currentuser"
+  ],
+  "editorType": [
+    "figma"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://api.figma.com"
+    ],
+    "reasoning": "Fetches the selected node's document JSON from the Figma REST API and relays it to a local code-generation server.",
+    "devAllowedDomains": [
+      "http://localhost:4000"
+    ]
+  }
+}
