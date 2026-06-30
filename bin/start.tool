@@ -9,7 +9,7 @@ npm install --prefix "$ROOT_DIR/relay-server"
 npm install --prefix "$ROOT_DIR/storybook-app"
 
 echo "Starting relay-server and storybook-app..."
-npx tsx "$ROOT_DIR/relay-server/server.ts" &
+(cd "$ROOT_DIR/relay-server" && npx tsx server.ts) &
 RELAY_PID=$!
 
 npm --prefix "$ROOT_DIR/storybook-app" run storybook &
