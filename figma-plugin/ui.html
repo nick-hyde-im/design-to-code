@@ -1,15 +1,27 @@
 <!doctype html>
 <html>
   <body style="font-family: sans-serif; padding: 16px">
+    <textarea
+      id="prompt"
+      placeholder="Optional: describe the component or request a change (e.g. 'make the corners more rounded')"
+      style="
+        width: 100%;
+        height: 80px;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+        font-family: sans-serif;
+      "
+    ></textarea>
     <button id="generate" style="width: 100%; padding: 8px">Generate component</button>
     <p id="status" style="font-size: 12px; color: #666"></p>
 
     <script>
       const statusEl = document.getElementById('status');
+      const promptEl = document.getElementById('prompt');
 
       document.getElementById('generate').onclick = () => {
         statusEl.textContent = 'Reading selection...';
-        parent.postMessage({ pluginMessage: { type: 'generate' } }, '*');
+        parent.postMessage({ pluginMessage: { type: 'generate', prompt: promptEl.value } }, '*');
       };
 
       window.onmessage = async (event) => {
@@ -31,6 +43,7 @@
                 componentName: msg.componentName,
                 nodeTree: msg.nodeTree,
                 imageBase64: msg.imageBase64,
+                prompt: msg.prompt,
               }),
             });
             const data = await res.json();

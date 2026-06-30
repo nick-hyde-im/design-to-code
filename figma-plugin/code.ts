@@ -51,7 +51,7 @@ figma.ui.onmessage = async (msg) => {
       return;
     }
 
-    const node = selection[0]!;
+    const node = selection[0];
     const nodeTree = serializeNode(node);
 
     const imageBytes = await node.exportAsync({
@@ -59,7 +59,6 @@ figma.ui.onmessage = async (msg) => {
       constraint: { type: 'SCALE', value: 2 },
     });
 
-    // Convert bytes to base64 for sending to the relay server
     const base64 = figma.base64Encode(imageBytes);
 
     figma.ui.postMessage({
@@ -67,6 +66,7 @@ figma.ui.onmessage = async (msg) => {
       componentName: node.name.replace(/\s+/g, ''),
       nodeTree,
       imageBase64: base64,
+      prompt: msg.prompt,
     });
   }
 };
