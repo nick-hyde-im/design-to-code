@@ -1,6 +1,6 @@
 'use strict';
 /// <reference types="@figma/plugin-typings" />
-figma.showUI(__html__, { width: 320, height: 200 });
+figma.showUI(__html__, { width: 320, height: 420 });
 function serializeNode(node) {
   const base = {
     type: node.type,

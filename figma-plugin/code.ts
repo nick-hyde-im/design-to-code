@@ -1,6 +1,6 @@
 /// <reference types="@figma/plugin-typings" />
 
-figma.showUI(__html__, { width: 320, height: 200 });
+figma.showUI(__html__, { width: 320, height: 420 });
 
 function serializeNode(node: SceneNode): any {
   const base: any = {
